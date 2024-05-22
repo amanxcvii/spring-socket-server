@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
+import com.studentdb.jdbcspring.server.ServerSocketCh;
 import com.studentdb.jdbcspring.server.serverChannel;
 
 
@@ -16,13 +17,13 @@ public class Application {
 	public static void main(String[] args) {
 		ApplicationContext context = SpringApplication.run(Application.class, args);
 		System.out.println("Running.....");
-		serverChannel sc = new serverChannel();
+		ServerSocketCh sc = new ServerSocketCh();
         Thread thread = new Thread(new Runnable() {
             public void run() {
                 while (true) {
                 	try {
 						sc.startListening();
-					} catch (ClassNotFoundException e) {
+					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}

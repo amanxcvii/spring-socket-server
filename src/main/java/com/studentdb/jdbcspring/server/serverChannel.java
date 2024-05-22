@@ -4,27 +4,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousByteChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
-
-import org.springframework.web.servlet.function.ServerRequest;
 
 import com.studentdb.jdbcspring.controller.StudentController;
 import com.studentdb.jdbcspring.entity.student;
 import com.studentdb.jdbcspring.messages.MessageSerialization;
 import com.studentdb.jdbcspring.messages.serverRequest;
-
-import jakarta.websocket.RemoteEndpoint.Async;
-import net.bytebuddy.asm.Advice.This;
 
 public class serverChannel {
 	SelectorProvider provider = SelectorProvider.provider();
@@ -33,6 +27,9 @@ public class serverChannel {
 	SocketChannel socketChannel;
 	SocketChannel clientSocketChannel;
 	DataOutputStream outputStream;
+	private static String clientChannel = "clientChannel";
+	private static String serverChannel = "serverChannel";
+	private static String channelType = "channelType";
 	
 	public serverChannel() {
 		try {
@@ -51,7 +48,14 @@ public class serverChannel {
 		try {
 				// Accept incoming connections
 				socketChannel = serverSocketChannel.accept();
-//				System.out.println("Connection Received");
+				Selector selector = Selector.open();
+				SelectionKey socketServerSelectionKey = serverSocketChannel.register(selector,
+						SelectionKey.OP_ACCEPT);
+				// set property in the key that identifies the channel
+				Map<String, String> properties = new HashMap<String, String>();
+				properties.put(channelType, serverChannel);
+				socketServerSelectionKey.attach(properties);
+				System.out.println("Connection Received");
 				if (socketChannel != null) {
 					// Handle the accepted connection
 					handleConnection(socketChannel);
@@ -100,6 +104,7 @@ public class serverChannel {
             }
             byte[] receivedData = byteArrayOutputStream.toByteArray();
 			Object obj = MessageSerialization.deserialize(receivedData);
+			inputStream.reset();
 			handleRequest(obj);
 //			socketChannel.close(); // Close the channel after communication
 			}
@@ -142,14 +147,8 @@ public class serverChannel {
 		serverRequest response = new serverRequest();
 		response.setKey(req.getKey());
 		response.setInfo(res);
-//		AsynchronousByteChannel socket = new SocketChannel
-//		try {
-//		this.clientSocketChannel = SocketChannel.open();//For Client Side
-//		clientSocketChannel.connect(new InetSocketAddress("localhost", 8090));
-//		}catch(Exception ex) {
-//			System.out.println("Error while creating client connection");
-//		}
 		if(socketChannel.isConnected()) {
+//			socketChannel.
 //        ObjectOutputStream outputStream = new ObjectOutputStream(socketChannel.socket().getOutputStream());
 //		DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
         if (outputStream != null ) {
@@ -166,3 +165,11 @@ public class serverChannel {
 
 
 }
+
+//		AsynchronousByteChannel socket = new SocketChannel
+//		try {
+//		this.clientSocketChannel = SocketChannel.open();//For Client Side
+//		clientSocketChannel.connect(new InetSocketAddress("localhost", 8090));
+//		}catch(Exception ex) {
+//			System.out.println("Error while creating client connection");
+//		}
