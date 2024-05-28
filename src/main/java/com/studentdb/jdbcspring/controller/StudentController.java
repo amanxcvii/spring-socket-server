@@ -54,4 +54,11 @@ public class StudentController {
 			return null;
 		}
 	}
+	public void addStudent(student newStudent) {
+		try {
+			this.studentService.saveStudent(newStudent);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 }

@@ -9,12 +9,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
 import org.springframework.stereotype.Component;
 
 import com.studentdb.jdbcspring.entity.student;
+import com.studentdb.jdbcspring.server.ServerSocketCh;
 
 @Component
 public class StudentRepository {
@@ -26,6 +29,8 @@ public class StudentRepository {
     final String password = "Qwerty@123";
     ResultSet resultSet = null;
     List list = null;
+    private final static Logger LOGGER = Logger.getLogger(StudentRepository.class.getName());
+
     
     public Connection getConnection() {
         try {
@@ -73,15 +78,21 @@ public class StudentRepository {
 	
 	public void save(student stu) throws SQLException {
 		String query = "INSERT INTO STUDENTS VALUES "
-				+ "(?,?,?,?,?,?,?);";
+				+ "(?,?,?,?,?,?,?,?);";
         this.preparedStatement = getConnection().prepareStatement(query);
         preparedStatement.setInt(1,stu.getStudentId());
         preparedStatement.setString(2,stu.getName());
         preparedStatement.setInt(3,stu.getAge());
         preparedStatement.setString(4,stu.getSex());
-        preparedStatement.setString(5,stu.getFname());
-        preparedStatement.setString(6,stu.getMname());
-        preparedStatement.setString(7,stu.getAddress());
+        preparedStatement.setString(5,stu.getStdClass());
+        preparedStatement.setString(6,stu.getFname());
+        preparedStatement.setString(7,stu.getMname());
+        preparedStatement.setString(8,stu.getAddress());
+        try {
+        preparedStatement.executeUpdate();
+        }catch(SQLException ex){
+        	LOGGER.log(Level.SEVERE,"Error while excuting query : " + ex.getMessage());
+        }
 	}
 
 }

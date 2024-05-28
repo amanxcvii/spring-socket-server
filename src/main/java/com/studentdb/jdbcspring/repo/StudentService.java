@@ -33,6 +33,7 @@ public class StudentService {
 //	    }
 
 	public void saveStudent(student student) throws SQLException {
+		StudentRepository studentRepository = new StudentRepository();
 		studentRepository.save(student);
 	}
 

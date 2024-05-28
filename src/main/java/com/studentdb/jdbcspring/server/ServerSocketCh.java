@@ -33,7 +33,7 @@ public class ServerSocketCh {
     private DataOutputStream outputStream;
     private static final String CHANNEL_TYPE = "channelType";
     private static final String SERVER_CHANNEL = "serverChannel";
-    private HashSet<SocketChannel> clients;
+    private HashSet<SocketChannel> clients = new HashSet<>();
     private Selector selector;
 
     public ServerSocketCh() {
@@ -51,7 +51,9 @@ public class ServerSocketCh {
         try {
             this.selector = Selector.open();
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-
+            for(SocketChannel channels : clients  ) {
+            	channels.register(selector, SelectionKey.OP_READ);
+            }
             while (true) {
             	if(selector.selectNow() != 0) {
                 selector.select();
@@ -82,7 +84,6 @@ public class ServerSocketCh {
             SocketChannel socketChannel = serverChannel.accept();
             socketChannel.configureBlocking(false);
 //            SelectionKey readKey = socketChannel.register(key.selector(), SelectionKey.OP_READ);
-            clients = new HashSet<>();
             clients.add(socketChannel);
             socketChannel.register(selector, SelectionKey.OP_READ);
             Map<String, String> properties = new HashMap<>();
@@ -156,7 +157,9 @@ public class ServerSocketCh {
 
     private void handleServerRequest(serverRequest newReq, SocketChannel socketChannel) throws IOException {
         try {
+        	if(newReq.getKey()!= null) {
             if (newReq.getKey().equals("GET_ALL_STUDENTS")) {
+            	LOGGER.log(Level.INFO, "GET_ALL_STUDENTS");;
                 StudentController con = new StudentController();
                 List<student> list = con.getAllStudentsAsList();
                 Vector<student> v = new Vector<>();
@@ -164,7 +167,17 @@ public class ServerSocketCh {
                     v.add(s);
                 }
                 sendMessage(newReq, v, socketChannel);
+            }else if(newReq.getKey().equals("ADD_STUDENT")) {
+               	LOGGER.log(Level.INFO, "ADD_STUDENT");;
+                StudentController con = new StudentController();
+                con.addStudent((student)newReq.getInfo().elementAt(0));
+                sendMessage(newReq, newReq.getInfo(), socketChannel);
+            }else {
+            	LOGGER.log(Level.WARNING, "Key Not Handled : "+newReq.getKey());;
             }
+        	}else {
+            	LOGGER.log(Level.INFO, "No Key Found");;
+        	}
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error handling server request", e);
         }
